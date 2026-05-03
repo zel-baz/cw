@@ -1,4 +1,6 @@
 
+
+// Main program
 function crosswordSolver(emptyPuzzle, words) {
     if (typeof emptyPuzzle !== 'string' || !Array.isArray(words)) {
         console.log('Error');
@@ -6,60 +8,41 @@ function crosswordSolver(emptyPuzzle, words) {
     }
 
     const matrix = grid(emptyPuzzle);
-    if (!validinput(matrix, words)) {
+    const cwords = words.map(w => (typeof w === 'string' ? w.toLowerCase() : w));
+    if (!checkMatrix(matrix) || !checkWords(cwords)) {
         console.log('Error');
         return;
     }
 
     const slots = getWordPlacements(matrix);
-    if (!slots || slots.length !== words.length) {
+    if (slots === null || slots.length !== cwords.length) {
         console.log('Error');
         return;
     }
 
-    solve(matrix, words, slots);
+    let solutions = solve(matrix, cwords, slots);
+    if (solutions.length !== 1) {
+        console.log('Error');
+        return;
+    }
+    console.log(solutions[0]);
 }
 
+// Parses puzzle string into 2d array
 function grid(data) {
-    if (data.length === 0) return [];
+    if (data.length === 0) return null;
     const matrix = [];
-    const split = data.split("\n");
+    const split = data.split('\n');
     const width = split[0].length;
+    if (width === 0) return null;
     for (let i = 0; i < split.length; i++) {
-        if (split[i].length !== width) return []; // Invalid grid shape
-        matrix.push(split[i].split(""));
+        if (split[i].length !== width) return null;
+        matrix.push(split[i].split(''));
     }
     return matrix;
 }
 
-function validinput(matrix, words) {
-    if (matrix.length === 0) return false;
-    if (!ParseMatrix(matrix)) return false;
-    if (!Parswords(words)) return false;
-    return true;
-}
-
-function ParseMatrix(matrix) {
-    const valid = ['0', '1', '2', '.'];
-    for (const row of matrix) {
-        for (const element of row) {
-            if (!valid.includes(element)) return false;
-        }
-    }
-    return true;
-}
-
-function Parswords(words) {
-    const seen = new Set();
-    for (const word of words) {
-        if (typeof word !== 'string' || word === "" || seen.has(word)) {
-            return false;
-        }
-        seen.add(word);
-    }
-    return true;
-}
-
+// Returns available word placements in the puzzle, with their properties
 function getWordPlacements(matrix) {
     const slots = [];
     for (let i = 0; i < matrix.length; i++) {
@@ -88,6 +71,31 @@ function getWordPlacements(matrix) {
     return slots;
 }
 
+// Checks if the puzzle table is valid
+function checkMatrix(matrix) {
+    if (matrix === null) return false;
+    const validChars = ['0', '1', '2', '.'];
+    for (const row of matrix) {
+        for (const cell of row) {
+            if (!validChars.includes(cell)) return false;
+        }
+    }
+    return true;
+}
+
+// Checks if words to be placed in the puzzle are valid
+function checkWords(words) {
+    const seen = new Set();
+    for (const word of words) {
+        if (typeof word !== 'string' || word === '' || seen.has(word)) {
+            return false;
+        }
+        seen.add(word);
+    }
+    return true;
+}
+
+// Returns possible solutions of the puzzle
 function solve(matrix, words, slots) {
     const solvedGrid = matrix.map(row => row.map(cell => (cell === '.' ? '.' : '')));
     const solutions = [];
@@ -143,40 +151,42 @@ function solve(matrix, words, slots) {
     }
 
     backtrack(0, new Array(words.length).fill(false));
-
-    if (solutions.length === 1) {
-        console.log(solutions[0]);
-    } else {
-        console.log('Error');
-    }
+    return solutions;
 }
 
-const puzzle = `...1...........
-..1000001000...
-...0....0......
-.1......0...1..
-.0....100000000
-100000..0...0..
-.0.....1001000.
-.0.1....0.0....
-.10000000.0....
-.0.0......0....
-.0.0.....100...
-...0......0....
-..........0....`
-const words = [
-  'sun',
-  'sunglasses',
-  'suncream',
-  'swimming',
-  'bikini',
-  'beach',
-  'icecream',
-  'tan',
-  'deckchair',
-  'sand',
-  'seaside',
-  'sandals',
-]
+// const emptyPuzzle = `...1...........
+// ..1000001000...
+// ...0....0......
+// .1......0...1..
+// .0....100000000
+// 100000..0...0..
+// .0.....1001000.
+// .0.1....0.0....
+// .10000000.0....
+// .0.0......0....
+// .0.0.....100...
+// ...0......0....
+// ..........0....`
 
-crosswordSolver(puzzle, words)
+// const words = [
+//     'sun',
+//     'sunglasses',
+//     'suncream',
+//     'swimming',
+//     'bikini',
+//     'beach',
+//     'icecream',
+//     'tan',
+//     'deckchair',
+//     'sand',
+//     'seaside',
+//     'sandals',
+// ]
+
+const emptyPuzzle = `2001
+0..0
+1000
+0..0`
+const words = ['casa', 'alan', 'ciao', 'anta']
+
+crosswordSolver(emptyPuzzle, words)
